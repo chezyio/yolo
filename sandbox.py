@@ -1,11 +1,10 @@
-import torch
 import cv2
 import numpy as np
 from sklearn.cluster import DBSCAN, HDBSCAN
 from ultralytics import YOLO
 import random
 
-model = YOLO('models/18junv11.pt') 
+model = YOLO('models/20junv13.pt') 
 
 # Load the image
 image_path = "datasets/set2/4549_286.png"
