@@ -1,13 +1,11 @@
-
-import torch
 import cv2
 import numpy as np
 from sklearn.cluster import HDBSCAN, DBSCAN
 from ultralytics import YOLO
+import re
 
-# Load YOLO model
 model = YOLO('models/20junv13.pt') 
-video_path = "feeds/osotspa/DJI_0714.MP4"
+video_path = "feeds/osotspa/DJI_0708_shortened_brightened.MP4"
 cap = cv2.VideoCapture(video_path)
 
 # Get video properties
@@ -15,18 +13,20 @@ fps = cap.get(cv2.CAP_PROP_FPS)
 width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-## fix this
-test = regex 
-output_path = f"results/{test}.mp4"
+pattern = r'/([^/]+)\.MP4$'
+match = re.search(pattern, video_path)
+
+if match:
+    filename = match.group(1)
+    output_path = f"results/{filename}.mp4"
+
 out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
 
 desired_class_id = 0
 class_1_id = 1
 
-# Top layer y range tolerance
 top_layer_tolerance = 50  
 
-# Generate a list of colors for different rows
 def generate_colors(num_colors):
     np.random.seed(42)
     colors = np.random.randint(0, 255, size=(num_colors, 3)).tolist()
@@ -67,9 +67,8 @@ while cap.isOpened():
         # clustering = DBSCAN(eps=200, min_samples=1).fit(centers)
         labels = clustering.labels_
 
-        # Define colors
-        class_1_color = [255, 0, 0]        # Red color for class 1 boxes
-        cluster_bbox_color = [0, 255, 0]   # Green color for cluster bounding box
+        class_1_color = [255, 0, 0]       
+        cluster_bbox_color = [0, 255, 0] 
 
         # Identify the number of rows for class 0 within each cluster and assign colors
         rows_per_cluster = {}
@@ -142,9 +141,9 @@ while cap.isOpened():
                     total_count = num_rows * class_1_count
 
                     # Draw the count of rows multiplied by class 1 detections for the cluster
-                    text = f'boxes = {total_count}'
-                    font_scale = 2
-                    thickness = 2  # Increase thickness for bold effect
+                    text = f'boxes = {total_count}, rows = {num_rows}, top = {class_1_count}'
+                    font_scale = 1.5
+                    thickness = 2
 
                     # Get the text size
                     (text_width, text_height), baseline = cv2.getTextSize(text, cv2.FONT_HERSHEY_SIMPLEX, font_scale, thickness)
