@@ -5,7 +5,7 @@ from ultralytics import YOLO
 import re
 
 model = YOLO('models/20junv13.pt') 
-video_path = "feeds/osotspa/DJI_0708_shortened_brightened.MP4"
+video_path = "feeds/osotspa/DJI_0707_shortened.MP4"
 cap = cv2.VideoCapture(video_path)
 
 # Get video properties
@@ -22,8 +22,8 @@ if match:
 
 out = cv2.VideoWriter(output_path, fourcc, fps, (width, height))
 
-desired_class_id = 0
-class_1_id = 1
+front_class_id = 0
+top_class_id = 1
 
 top_layer_tolerance = 50  
 
@@ -61,13 +61,12 @@ while cap.isOpened():
     class_ids = np.array(class_ids)
 
     if len(final_boxes) > 0:
-        # Cluster boxes by pallet using HDBSCAN
         centers = np.array([(box[0] + box[2] // 2, box[1] + box[3] // 2) for box in final_boxes])
         clustering = HDBSCAN(min_cluster_size=9, min_samples=3).fit(centers)
         # clustering = DBSCAN(eps=200, min_samples=1).fit(centers)
         labels = clustering.labels_
 
-        class_1_color = [255, 0, 0]       
+        top_class_id = [255, 0, 0]       
         cluster_bbox_color = [0, 255, 0] 
 
         # Identify the number of rows for class 0 within each cluster and assign colors
@@ -79,7 +78,7 @@ while cap.isOpened():
                 cluster_class_ids = class_ids[labels == label]
                 if len(cluster_boxes) > 0:
                     # Filter class 0 boxes in the cluster
-                    class_0_boxes = cluster_boxes[cluster_class_ids == desired_class_id]
+                    class_0_boxes = cluster_boxes[cluster_class_ids == front_class_id]
                     if len(class_0_boxes) > 0:
                         # Identify the number of rows by looking at the unique y coordinates within tolerance
                         unique_y_coords = []
@@ -97,7 +96,7 @@ while cap.isOpened():
                 cluster_boxes = final_boxes[labels == label]
                 cluster_class_ids = class_ids[labels == label]
                 if len(cluster_boxes) > 0:
-                    class_0_boxes = cluster_boxes[cluster_class_ids == desired_class_id]
+                    class_0_boxes = cluster_boxes[cluster_class_ids == front_class_id]
                     if len(class_0_boxes) > 0:
                         unique_y_coords = []
                         row_color_map = {}
@@ -114,9 +113,9 @@ while cap.isOpened():
 
         # Draw bounding boxes for class 1 boxes
         for i, box in enumerate(final_boxes):
-            if class_ids[i] == class_1_id:
+            if class_ids[i] == top_class_id:
                 x, y, w, h = box
-                cv2.rectangle(frame, (x, y), (x + w, y + h), class_1_color, 4)
+                cv2.rectangle(frame, (x, y), (x + w, y + h), top_class_id, 4)
 
         # Draw a bounding box around each cluster with count of top layer boxes multiplied by number of "1" class detections
         for label in np.unique(labels):
@@ -135,14 +134,17 @@ while cap.isOpened():
                     num_rows = rows_per_cluster.get(label, 0)
 
                     # Count the number of "1" class detections in the cluster
-                    class_1_count = sum(cluster_class_ids == class_1_id)
+                    class_1_count = sum(cluster_class_ids == top_class_id)
+
+                    # Count the number of class 0 detections in the cluster
+                    class_0_count = sum(cluster_class_ids == front_class_id)
 
                     # Multiply the number of rows by the number of "1" class detections
-                    total_count = num_rows * class_1_count
+                    total_count = num_rows * top_class_id
 
                     # Draw the count of rows multiplied by class 1 detections for the cluster
-                    text = f'boxes = {total_count}, rows = {num_rows}, top = {class_1_count}'
-                    font_scale = 1.5
+                    text = f'boxes = {total_count}, rows = {num_rows}, top = {class_1_count}, front = {class_0_count}'
+                    font_scale = 1.2
                     thickness = 2
 
                     # Get the text size
