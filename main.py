@@ -66,7 +66,7 @@ while cap.isOpened():
         # clustering = DBSCAN(eps=200, min_samples=1).fit(centers)
         labels = clustering.labels_
 
-        top_class_id = [255, 0, 0]       
+        class_1_color = [255, 0, 0]       
         cluster_bbox_color = [0, 255, 0] 
 
         # Identify the number of rows for class 0 within each cluster and assign colors
@@ -113,10 +113,10 @@ while cap.isOpened():
 
         # Draw bounding boxes for class 1 boxes
         for i, box in enumerate(final_boxes):
-            if class_ids[i] == top_class_id:
+            if class_ids[i] == top_class_id:  # <-- Correct comparison
                 x, y, w, h = box
-                cv2.rectangle(frame, (x, y), (x + w, y + h), top_class_id, 4)
-
+                cv2.rectangle(frame, (x, y), (x + w, y + h), class_1_color, 4)
+                
         # Draw a bounding box around each cluster with count of top layer boxes multiplied by number of "1" class detections
         for label in np.unique(labels):
             if label != -1:
