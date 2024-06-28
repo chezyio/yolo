@@ -140,7 +140,7 @@ while cap.isOpened():
                     class_0_count = sum(cluster_class_ids == front_class_id)
 
                     # Multiply the number of rows by the number of "1" class detections
-                    total_count = num_rows * top_class_id
+                    total_count = num_rows * class_1_count
 
                     # Draw the count of rows multiplied by class 1 detections for the cluster
                     text = f'boxes = {total_count}, rows = {num_rows}, top = {class_1_count}, front = {class_0_count}'
