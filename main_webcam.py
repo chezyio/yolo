@@ -23,7 +23,7 @@ top_class_id = 10 # set to 10 for override, 1 for top
 top_layer_tolerance = 50  # Tolerance for considering items in the same row based on their y-coordinates
 
 # Confidence threshold
-confidence_threshold = 0.5
+confidence_threshold = 0.6
 
 def generate_colors(num_colors):
     np.random.seed(42)
