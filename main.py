@@ -2,10 +2,13 @@ import cv2
 import numpy as np
 from sklearn.cluster import HDBSCAN, DBSCAN
 from ultralytics import YOLO
+import os  # Add this to use the os module for cross-platform paths
+
 import re
 
-model = YOLO('models/20junv13.pt') 
-video_path = "feeds/osotspa/DJI_0707_shortened.MP4"
+model = YOLO('v33_yolo11.pt')
+# print(model.task)
+video_path = "lidar_mp4.mp4"
 cap = cv2.VideoCapture(video_path)
 
 # Get video properties
@@ -15,6 +18,13 @@ height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 fourcc = cv2.VideoWriter_fourcc(*'mp4v')
 pattern = r'/([^/]+)\.MP4$'
 match = re.search(pattern, video_path)
+filename = os.path.splitext(os.path.basename(video_path))[0]
+
+output_path = f"results/{filename}.mp4"
+
+# Define a confidence threshold
+confidence_threshold = 0.3
+
 
 if match:
     filename = match.group(1)
@@ -49,12 +59,14 @@ while cap.isOpened():
         boxes = result.boxes 
 
         for box in boxes:
-            class_id = box.cls[0].item()
-            x1, y1, x2, y2 = box.xyxy[0].tolist()
+            
             conf = box.conf[0].item()
-            final_boxes.append([int(x1), int(y1), int(x2 - x1), int(y2 - y1)])
-            confidences.append(conf)
-            class_ids.append(class_id)
+            if conf >= confidence_threshold:  # Apply the confidence threshold
+                x1, y1, x2, y2 = box.xyxy[0].tolist()
+                class_id = box.cls[0].item()
+                final_boxes.append([int(x1), int(y1), int(x2 - x1), int(y2 - y1)])
+                confidences.append(conf)
+                class_ids.append(class_id)
 
     final_boxes = np.array(final_boxes)
     confidences = np.array(confidences)
@@ -62,8 +74,8 @@ while cap.isOpened():
 
     if len(final_boxes) > 0:
         centers = np.array([(box[0] + box[2] // 2, box[1] + box[3] // 2) for box in final_boxes])
-        clustering = HDBSCAN(min_cluster_size=9, min_samples=3).fit(centers)
-        # clustering = DBSCAN(eps=200, min_samples=1).fit(centers)
+        # clustering = HDBSCAN(min_cluster_size=9, min_samples=3).fit(centers)
+        clustering = DBSCAN(eps=100, min_samples=1).fit(centers)
         labels = clustering.labels_
 
         class_1_color = [255, 0, 0]       
@@ -143,7 +155,7 @@ while cap.isOpened():
                     total_count = num_rows * class_1_count
 
                     # Draw the count of rows multiplied by class 1 detections for the cluster
-                    text = f'boxes = {total_count}, rows = {num_rows}, top = {class_1_count}, front = {class_0_count}'
+                    text = f'rows = {num_rows}, front = {class_0_count}'
                     font_scale = 1.2
                     thickness = 2
 
