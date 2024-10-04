@@ -155,7 +155,7 @@ while cap.isOpened():
                     total_count = num_rows * class_1_count
 
                     # Draw the count of rows multiplied by class 1 detections for the cluster
-                    text = f'rows = {num_rows}, front = {class_0_count}'
+                    text = f'boxes = {total_count}, rows = {num_rows}, top = {class_1_count}, front = {class_0_count}'
                     font_scale = 1.2
                     thickness = 2
 
