@@ -2,13 +2,13 @@ import cv2
 import numpy as np
 from sklearn.cluster import HDBSCAN, DBSCAN
 from ultralytics import YOLO
-import os  # Add this to use the os module for cross-platform paths
+import os
 
 import re
 
 model = YOLO('v33_yolo11.pt')
 # print(model.task)
-video_path = "lidar_mp4.mp4"
+video_path = "feeds/osotspa/DJI_0708_shortened.mp4"
 cap = cv2.VideoCapture(video_path)
 
 # Get video properties
@@ -23,7 +23,7 @@ filename = os.path.splitext(os.path.basename(video_path))[0]
 output_path = f"results/{filename}.mp4"
 
 # Define a confidence threshold
-confidence_threshold = 0.3
+confidence_threshold = 0.6
 
 
 if match:
@@ -75,7 +75,7 @@ while cap.isOpened():
     if len(final_boxes) > 0:
         centers = np.array([(box[0] + box[2] // 2, box[1] + box[3] // 2) for box in final_boxes])
         # clustering = HDBSCAN(min_cluster_size=9, min_samples=3).fit(centers)
-        clustering = DBSCAN(eps=100, min_samples=1).fit(centers)
+        clustering = DBSCAN(eps=300, min_samples=1).fit(centers)
         labels = clustering.labels_
 
         class_1_color = [255, 0, 0]       
