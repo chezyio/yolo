@@ -4,7 +4,7 @@ from sklearn.cluster import HDBSCAN, DBSCAN
 from ultralytics import YOLO
 
 # model = YOLO('models/v10_3.pt')
-model = YOLO('v33.pt')
+model = YOLO('v33_yolo11.pt')
 
 cap = cv2.VideoCapture(0)
 
@@ -23,7 +23,7 @@ top_class_id = 10 # set to 10 for override, 1 for top
 top_layer_tolerance = 50  # Tolerance for considering items in the same row based on their y-coordinates
 
 # Confidence threshold
-confidence_threshold = 0.6
+confidence_threshold = 0.4
 
 def generate_colors(num_colors):
     np.random.seed(42)
@@ -65,7 +65,7 @@ while cap.isOpened():
     if len(final_boxes) > 0:
         centers = np.array([(box[0] + box[2] // 2, box[1] + box[3] // 2) for box in final_boxes])
         # Clustering algorithm (use DBSCAN here)
-        clustering = DBSCAN(eps=200, min_samples=1).fit(centers)
+        clustering = DBSCAN(eps=300, min_samples=1).fit(centers)
         labels = clustering.labels_
 
         class_1_color = [255, 0, 0]       # Color for class 1 boxes
