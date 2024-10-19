@@ -47,7 +47,7 @@
 #         'numbeOfBoxesFoundInEachCluster': [],
 #         'positionOfBoxesInEachCluster': [],
 #         'confidenceOfBoxesInEachCluster': []
-#     }
+#     }gi
 
 #     # Iterate over clusters
 #     for label in np.unique(labels):
@@ -72,24 +72,24 @@
 #     print("No objects detected.")
 
 
-
-
 import cv2
 import numpy as np
 from sklearn.cluster import HDBSCAN
 from ultralytics import YOLO
 import re
 
-model = YOLO('models/20junv13.pt') 
-frame_path = "datasets/set2/4549_7043.png"  
-
-
+model = YOLO('v25.pt') 
+frame_path = "test3.jpg"  
 
 # Read the frame
 frame = cv2.imread(frame_path)
 
+# Resize the frame to 640x640
+resized_frame = cv2.resize(frame, (1280, 1280))
+
+
 # Perform inference with YOLO
-results = model(frame)
+results = model(resized_frame)
 
 # Extract bounding boxes and confidences
 final_boxes = []
@@ -139,6 +139,14 @@ if len(final_boxes) > 0:
 
             cluster_bounding_box = [int(x_min), int(y_min), int(x_max), int(y_max)]
 
+            # Draw the bounding box on the frame
+            cv2.rectangle(frame, (int(x_min), int(y_min)), (int(x_max), int(y_max)), (0, 255, 0), 2)
+
+            # Draw each individual box in the cluster
+            for box in cluster_boxes:
+                x1, y1, x2, y2 = box
+                cv2.rectangle(frame, (int(x1), int(y1)), (int(x2), int(y2)), (255, 0, 0), 2)
+
             # Store cluster information
             results_dict['clusterBoundingBoxesPosition'].append(cluster_bounding_box)
             results_dict['numbeOfBoxesFoundInEachCluster'].append(len(cluster_boxes))
@@ -150,6 +158,11 @@ if len(final_boxes) > 0:
     with open(output_file, 'w') as f:
         f.write(str(results_dict))
 
+    # Save the frame with bounding boxes
+    output_image_path = 'results/frame_with_bboxes.png'
+    cv2.imwrite(output_image_path, frame)
+
     print(f"Results saved to {output_file}")
+    print(f"Image with bounding boxes saved to {output_image_path}")
 else:
     print("No objects detected.")
